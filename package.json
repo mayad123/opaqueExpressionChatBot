@@ -1,0 +1,22 @@
+{
+  "name": "opaque-expression-chatbot",
+  "version": "1.0.0",
+  "description": "A web interface to generate Cameo opaque expressions from natural language prompts using Mistral.AI",
+  "main": "index.html",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'Static site - no build needed'"
+  },
+  "keywords": [
+    "cameo",
+    "opaque-expression",
+    "mistral-ai",
+    "magicdraw"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}
+

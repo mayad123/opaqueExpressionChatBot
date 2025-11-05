@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cameo Opaque Expression Generator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 Cameo Opaque Expression Generator</h1>
+            <p class="subtitle">Describe what you want to achieve, and we'll show you how to create the corresponding opaque expression in Cameo</p>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <div class="input-wrapper">
+                    <textarea 
+                        id="promptInput" 
+                        placeholder="Enter your natural language prompt here...&#10;&#10;Example: 'Find all classes that have a property named status'&#10;Example: 'Get all operations from classes that extend a specific base class'"
+                        rows="6"
+                    ></textarea>
+                    <button id="submitBtn" class="submit-btn">
+                        <span class="btn-text">Generate Expression</span>
+                        <span class="btn-loader" style="display: none;">⏳ Generating...</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="responseSection" class="response-section" style="display: none;">
+                <div class="response-header">
+                    <h2>Generated Opaque Expression Guide</h2>
+                    <button id="copyBtn" class="copy-btn" title="Copy to clipboard">📋 Copy</button>
+                </div>
+                
+                <div id="structuredContent" class="structured-content">
+                    <div id="intentSection" class="section-block" style="display: none;">
+                        <h3>🎯 Intent</h3>
+                        <p id="intentContent"></p>
+                    </div>
+                    
+                    <div id="startingContextSection" class="section-block" style="display: none;">
+                        <h3>📍 Starting Context</h3>
+                        <p id="startingContextContent"></p>
+                    </div>
+                    
+                    <div id="metachainSection" class="section-block" style="display: none;">
+                        <h3>🔗 Metachain</h3>
+                        <code id="metachainContent" class="code-block"></code>
+                    </div>
+                    
+                    <div id="filtersSection" class="section-block" style="display: none;">
+                        <h3>🔍 Filters</h3>
+                        <p id="filtersContent"></p>
+                    </div>
+                    
+                    <div id="finalExpressionSection" class="section-block" style="display: none;">
+                        <h3>📝 Final Expression Template</h3>
+                        <pre id="finalExpressionContent" class="code-block"></pre>
+                    </div>
+                    
+                    <div id="notesSection" class="section-block" style="display: none;">
+                        <h3>💡 Notes</h3>
+                        <p id="notesContent"></p>
+                    </div>
+                </div>
+                
+                <div id="expressionViewSection" class="expression-view-section" style="display: none;">
+                    <h3>🌳 Expression View</h3>
+                    <div id="expressionViewTree" class="expression-tree"></div>
+                </div>
+                
+                <div id="rawResponseSection" class="raw-response-section" style="display: none;">
+                    <details>
+                        <summary>📄 Raw Response</summary>
+                        <pre id="rawResponseContent" class="code-block"></pre>
+                    </details>
+                </div>
+            </div>
+
+            <div id="errorSection" class="error-section" style="display: none;">
+                <div class="error-content">
+                    <span class="error-icon">⚠️</span>
+                    <span id="errorMessage"></span>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Based on <a href="https://docs.nomagic.com/spaces/MD2021x/pages/64978604/Creating+new+operations" target="_blank">Cameo Documentation</a></p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
