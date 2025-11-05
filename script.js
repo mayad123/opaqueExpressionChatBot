@@ -5,10 +5,8 @@ const API_ENDPOINT = '/.netlify/functions/generate-expression';
 const promptInput = document.getElementById('promptInput');
 const submitBtn = document.getElementById('submitBtn');
 const responseSection = document.getElementById('responseSection');
-const responseContent = document.getElementById('responseContent');
 const errorSection = document.getElementById('errorSection');
 const errorMessage = document.getElementById('errorMessage');
-const copyBtn = document.getElementById('copyBtn');
 
 // Submit handler
 submitBtn.addEventListener('click', handleSubmit);
@@ -18,8 +16,8 @@ promptInput.addEventListener('keydown', (e) => {
     }
 });
 
-// Copy handler
-copyBtn.addEventListener('click', copyResponse);
+// Store the current prompt for display
+let currentPrompt = '';
 
 async function handleSubmit() {
     const prompt = promptInput.value.trim();
@@ -28,6 +26,9 @@ async function handleSubmit() {
         showError('Please enter a prompt');
         return;
     }
+
+    // Store the prompt for display
+    currentPrompt = prompt;
 
     // Hide previous responses
     hideError();
@@ -61,6 +62,12 @@ async function handleSubmit() {
 }
 
 function showResponse(data) {
+    // Display user's prompt
+    if (currentPrompt) {
+        document.getElementById('userPromptContent').textContent = currentPrompt;
+        document.getElementById('userPromptSection').style.display = 'block';
+    }
+    
     // Display structured sections
     if (data.structured) {
         const sections = data.structured;
@@ -161,12 +168,14 @@ function getIcon(iconKey) {
         'param.input': '📥',
         'metachain': '🔗',
         'uml.class': '📦',
-        'uaf.capability': '🎯',
         'note': '📝',
         'filter': '🔍',
-        'elementRef': '🔖',
+        'Filter': '🔍',
         'operation': '⚙️',
         'parameter': '📥',
+        'ImpliedRelation': '🔀',
+        'typeTest': '✓',
+        'TypeTest': '✓',
     };
     return iconMap[iconKey] || '📄';
 }
@@ -174,6 +183,7 @@ function getIcon(iconKey) {
 function hideResponse() {
     responseSection.style.display = 'none';
     // Hide all sections
+    document.getElementById('userPromptSection').style.display = 'none';
     document.querySelectorAll('.section-block').forEach(el => el.style.display = 'none');
     document.getElementById('expressionViewSection').style.display = 'none';
     document.getElementById('rawResponseSection').style.display = 'none';
@@ -203,39 +213,4 @@ function setLoading(loading) {
     }
 }
 
-function copyResponse() {
-    // Collect all visible content
-    const sections = [];
-    
-    const intent = document.getElementById('intentContent').textContent;
-    if (intent) sections.push(`Intent\n${intent}`);
-    
-    const startingContext = document.getElementById('startingContextContent').textContent;
-    if (startingContext) sections.push(`Starting Context\n${startingContext}`);
-    
-    const metachain = document.getElementById('metachainContent').textContent;
-    if (metachain) sections.push(`Metachain\n${metachain}`);
-    
-    const filters = document.getElementById('filtersContent').textContent;
-    if (filters) sections.push(`Filters\n${filters}`);
-    
-    const finalExpression = document.getElementById('finalExpressionContent').textContent;
-    if (finalExpression) sections.push(`Final Expression Template\n${finalExpression}`);
-    
-    const notes = document.getElementById('notesContent').textContent;
-    if (notes) sections.push(`Notes\n${notes}`);
-    
-    const text = sections.join('\n\n');
-    
-    navigator.clipboard.writeText(text).then(() => {
-        const originalText = copyBtn.textContent;
-        copyBtn.textContent = '✓ Copied!';
-        setTimeout(() => {
-            copyBtn.textContent = originalText;
-        }, 2000);
-    }).catch(err => {
-        console.error('Failed to copy:', err);
-        showError('Failed to copy to clipboard');
-    });
-}
 

@@ -129,9 +129,6 @@ main {
 }
 
 .response-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     margin-bottom: 20px;
 }
 
@@ -140,19 +137,28 @@ main {
     color: var(--text-primary);
 }
 
-.copy-btn {
-    padding: 8px 16px;
-    background: var(--surface-light);
+.user-prompt-section {
+    background: var(--background);
+    border-radius: 8px;
+    padding: 20px;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
-    color: var(--text-primary);
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: background 0.2s ease;
+    border-left: 4px solid var(--secondary-color);
+    margin-bottom: 20px;
 }
 
-.copy-btn:hover {
-    background: var(--border-color);
+.user-prompt-section h3 {
+    color: var(--secondary-color);
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.user-prompt-section p {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    font-style: italic;
 }
 
 .structured-content {
