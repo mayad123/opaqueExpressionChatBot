@@ -115,6 +115,73 @@ main {
     text-decoration: underline;
 }
 
+.context-section {
+    margin-bottom: 30px;
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.context-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.context-wrapper label {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.context-select {
+    width: 100%;
+    padding: 12px;
+    background: var(--background);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.3s ease;
+    cursor: pointer;
+}
+
+.context-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.context-select option {
+    background: var(--background);
+    color: var(--text-primary);
+}
+
+.context-help {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.context-options {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.context-option-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.context-option-wrapper label {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
 .input-section {
     margin-bottom: 30px;
 }

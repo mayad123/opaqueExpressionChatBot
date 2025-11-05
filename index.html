@@ -27,6 +27,105 @@
                 </div>
             </div>
 
+            <div class="context-section">
+                <div class="context-wrapper">
+                    <label for="contextSelect">Expression Context</label>
+                    <select id="contextSelect" class="context-select">
+                        <option value="">Select where this expression will be used...</option>
+                        <option value="scope-criteria">Scope Criteria</option>
+                        <option value="derived-property">Derived Property</option>
+                        <option value="custom-column">Custom Column</option>
+                        <option value="legend">Legend</option>
+                    </select>
+                    <small class="context-help">Select the Cameo context where you'll use this expression</small>
+                </div>
+                
+                <!-- Scope Criteria: Package or Element -->
+                <div id="scopeCriteriaOptions" class="context-options" style="display: none;">
+                    <div class="context-option-wrapper">
+                        <label for="scopeInputType">Input Type</label>
+                        <select id="scopeInputType" class="context-select">
+                            <option value="">Select input type...</option>
+                            <option value="package">Package</option>
+                            <option value="element">Element</option>
+                        </select>
+                        <small class="context-help">Is the input a package or an element?</small>
+                    </div>
+                </div>
+                
+                <!-- Custom Column: Row Type -->
+                <div id="customColumnOptions" class="context-options" style="display: none;">
+                    <div class="context-option-wrapper">
+                        <label for="rowType">Row Type</label>
+                        <select id="rowType" class="context-select">
+                            <option value="">Select row type...</option>
+                            <optgroup label="SysML Types">
+                                <option value="Block">Block</option>
+                                <option value="Part">Part</option>
+                                <option value="ValueType">ValueType</option>
+                                <option value="InterfaceBlock">InterfaceBlock</option>
+                                <option value="Port">Port</option>
+                                <option value="FlowPort">FlowPort</option>
+                                <option value="Action">Action</option>
+                                <option value="Activity">Activity</option>
+                                <option value="StateMachine">StateMachine</option>
+                                <option value="State">State</option>
+                                <option value="Transition">Transition</option>
+                                <option value="Requirement">Requirement</option>
+                                <option value="ConstraintBlock">ConstraintBlock</option>
+                                <option value="Property">Property</option>
+                                <option value="Operation">Operation</option>
+                                <option value="Parameter">Parameter</option>
+                                <option value="Class">Class</option>
+                                <option value="Association">Association</option>
+                                <option value="Dependency">Dependency</option>
+                                <option value="Generalization">Generalization</option>
+                            </optgroup>
+                            <optgroup label="Custom Types">
+                                <option value="[CUSTOM TYPE]">Custom Type (enter in prompt)</option>
+                            </optgroup>
+                        </select>
+                        <small class="context-help">Select the SysML type or custom type for the row</small>
+                    </div>
+                </div>
+                
+                <!-- Derived Property: Element Type -->
+                <div id="derivedPropertyOptions" class="context-options" style="display: none;">
+                    <div class="context-option-wrapper">
+                        <label for="elementType">Element Type</label>
+                        <select id="elementType" class="context-select">
+                            <option value="">Select element type...</option>
+                            <optgroup label="SysML Types">
+                                <option value="Block">Block</option>
+                                <option value="Part">Part</option>
+                                <option value="ValueType">ValueType</option>
+                                <option value="InterfaceBlock">InterfaceBlock</option>
+                                <option value="Port">Port</option>
+                                <option value="FlowPort">FlowPort</option>
+                                <option value="Action">Action</option>
+                                <option value="Activity">Activity</option>
+                                <option value="StateMachine">StateMachine</option>
+                                <option value="State">State</option>
+                                <option value="Transition">Transition</option>
+                                <option value="Requirement">Requirement</option>
+                                <option value="ConstraintBlock">ConstraintBlock</option>
+                                <option value="Property">Property</option>
+                                <option value="Operation">Operation</option>
+                                <option value="Parameter">Parameter</option>
+                                <option value="Class">Class</option>
+                                <option value="Association">Association</option>
+                                <option value="Dependency">Dependency</option>
+                                <option value="Generalization">Generalization</option>
+                            </optgroup>
+                            <optgroup label="Custom Types">
+                                <option value="[CUSTOM TYPE]">Custom Type (enter in prompt)</option>
+                            </optgroup>
+                        </select>
+                        <small class="context-help">Select the SysML type or custom type for the element</small>
+                    </div>
+                </div>
+            </div>
+
             <div class="input-section">
                 <div class="input-wrapper">
                     <textarea 

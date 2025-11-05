@@ -1,9 +1,17 @@
 // Configuration
 const MISTRAL_API_URL = 'https://api.mistral.ai/v1/chat/completions';
 
+// Optional: Python backend for advanced prompt analysis
+// Set to null to use JavaScript-only analysis, or set to your Python backend URL
+const PYTHON_BACKEND_URL = null; // e.g., 'http://localhost:5000' or 'https://your-backend.herokuapp.com'
+
 // DOM elements
 const promptInput = document.getElementById('promptInput');
 const apiKeyInput = document.getElementById('apiKeyInput');
+const contextSelect = document.getElementById('contextSelect');
+const scopeInputType = document.getElementById('scopeInputType');
+const rowType = document.getElementById('rowType');
+const elementType = document.getElementById('elementType');
 const submitBtn = document.getElementById('submitBtn');
 const responseSection = document.getElementById('responseSection');
 const errorSection = document.getElementById('errorSection');
@@ -27,6 +35,25 @@ apiKeyInput.addEventListener('blur', () => {
     }
 });
 
+// Handle context selection changes to show/hide conditional options
+contextSelect.addEventListener('change', () => {
+    const context = contextSelect.value;
+    
+    // Hide all conditional options
+    document.getElementById('scopeCriteriaOptions').style.display = 'none';
+    document.getElementById('customColumnOptions').style.display = 'none';
+    document.getElementById('derivedPropertyOptions').style.display = 'none';
+    
+    // Show relevant conditional options based on context
+    if (context === 'scope-criteria') {
+        document.getElementById('scopeCriteriaOptions').style.display = 'block';
+    } else if (context === 'custom-column') {
+        document.getElementById('customColumnOptions').style.display = 'block';
+    } else if (context === 'derived-property') {
+        document.getElementById('derivedPropertyOptions').style.display = 'block';
+    }
+});
+
 // Submit handler
 submitBtn.addEventListener('click', handleSubmit);
 promptInput.addEventListener('keydown', (e) => {
@@ -41,6 +68,17 @@ let currentPrompt = '';
 async function handleSubmit() {
     const prompt = promptInput.value.trim();
     const apiKey = apiKeyInput.value.trim();
+    const context = contextSelect.value;
+    
+    // Get context-specific values
+    let contextSpecific = {};
+    if (context === 'scope-criteria') {
+        contextSpecific.inputType = scopeInputType.value;
+    } else if (context === 'custom-column') {
+        contextSpecific.rowType = rowType.value;
+    } else if (context === 'derived-property') {
+        contextSpecific.elementType = elementType.value;
+    }
     
     if (!prompt) {
         showError('Please enter a prompt');
@@ -58,8 +96,39 @@ async function handleSubmit() {
     setLoading(true);
     
     try {
-        // Analyze prompt to detect patterns
-        const promptAnalysis = analyzePrompt(prompt);
+        // Analyze prompt to detect patterns (use Python backend if available, else JavaScript)
+        let promptAnalysis;
+        if (PYTHON_BACKEND_URL) {
+            try {
+                const analysisResponse = await fetch(`${PYTHON_BACKEND_URL}/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        context: context,
+                        contextSpecific: contextSpecific
+                    }),
+                });
+                
+                if (analysisResponse.ok) {
+                    const analysisData = await analysisResponse.json();
+                    promptAnalysis = analysisData.analysis;
+                } else {
+                    // Fallback to JavaScript analysis if Python backend fails
+                    console.warn('Python backend unavailable, using JavaScript analysis');
+                    promptAnalysis = analyzePrompt(prompt);
+                }
+            } catch (error) {
+                // Fallback to JavaScript analysis if Python backend is unreachable
+                console.warn('Python backend unreachable, using JavaScript analysis:', error);
+                promptAnalysis = analyzePrompt(prompt);
+            }
+        } else {
+            // Use JavaScript analysis
+            promptAnalysis = analyzePrompt(prompt);
+        }
         
         // If no API key, just show prompt analysis
         if (!apiKey) {
@@ -84,8 +153,8 @@ async function handleSubmit() {
             return;
         }
 
-        // Generate system prompt
-        const systemPrompt = generateSystemPrompt(promptAnalysis);
+        // Generate system prompt with context
+        const systemPrompt = generateSystemPrompt(promptAnalysis, context, contextSpecific);
         const userPrompt = `Create an opaque expression template for Cameo that: ${prompt.trim()}`;
 
         // Call Mistral.AI API directly
@@ -153,7 +222,39 @@ async function handleSubmit() {
     }
 }
 
-function generateSystemPrompt(promptAnalysis) {
+function generateSystemPrompt(promptAnalysis, context, contextSpecific) {
+    // Get context description
+    let contextInfo = '';
+    if (context) {
+        const contextDescriptions = {
+            'scope-criteria': 'This expression will be used in a Scope Criteria context. Scope criteria are used to filter or define the scope of elements in queries, searches, or analysis operations.',
+            'derived-property': 'This expression will be used in a Derived Property context. Derived properties calculate values based on other properties or model elements.',
+            'custom-column': 'This expression will be used in a Custom Column context. Custom columns are used in tables or views to display calculated or derived values.',
+            'legend': 'This expression will be used in a Legend context. Legends define visual representations or categorization of model elements.'
+        };
+        
+        let contextDesc = contextDescriptions[context] || '';
+        
+        // Add context-specific details
+        if (context === 'scope-criteria' && contextSpecific.inputType) {
+            contextDesc += `\n\nThe input type is: ${contextSpecific.inputType} (${contextSpecific.inputType === 'package' ? 'a Package' : 'an Element'}). The expression must work with this input type.`;
+        } else if (context === 'custom-column' && contextSpecific.rowType) {
+            if (contextSpecific.rowType === '[CUSTOM TYPE]') {
+                contextDesc += `\n\nThe row type is a custom type (specified in the user prompt). The expression must work with this custom row type.`;
+            } else {
+                contextDesc += `\n\nThe row type is: ${contextSpecific.rowType}. The expression must work with ${contextSpecific.rowType} elements.`;
+            }
+        } else if (context === 'derived-property' && contextSpecific.elementType) {
+            if (contextSpecific.elementType === '[CUSTOM TYPE]') {
+                contextDesc += `\n\nThe element type is a custom type (specified in the user prompt). The expression must work with this custom element type.`;
+            } else {
+                contextDesc += `\n\nThe element type is: ${contextSpecific.elementType}. The expression must work with ${contextSpecific.elementType} elements.`;
+            }
+        }
+        
+        contextInfo = `\n\n## EXPRESSION CONTEXT:\n${contextDesc}\n\nIMPORTANT: The expression must be appropriate for use in a ${context.replace('-', ' ')} context.\n`;
+    }
+    
     let systemPrompt = `Your task is to:
 
 Explain the intent of the expression.
@@ -238,6 +339,11 @@ If the expression is about satisfy → requirement, the final JSON should look l
   }
 }`;
 
+    // Add context information
+    if (contextInfo) {
+        systemPrompt += contextInfo;
+    }
+    
     // Enhance system prompt with detected patterns
     if (promptAnalysis.guidance) {
         systemPrompt += `\n\n## IMPORTANT DETECTED PATTERNS:\n${promptAnalysis.guidance}\n`;
@@ -363,7 +469,35 @@ ${metachainExamples}
 function showResponse(data) {
     // Display user's prompt
     if (currentPrompt) {
-        document.getElementById('userPromptContent').textContent = currentPrompt;
+        let promptText = currentPrompt;
+        const context = contextSelect.value;
+        if (context) {
+            const contextLabels = {
+                'scope-criteria': 'Scope Criteria',
+                'derived-property': 'Derived Property',
+                'custom-column': 'Custom Column',
+                'legend': 'Legend'
+            };
+            promptText += `\n\n[Context: ${contextLabels[context]}]`;
+            
+            // Add context-specific details
+            if (context === 'scope-criteria' && scopeInputType.value) {
+                promptText += `\n[Input Type: ${scopeInputType.value === 'package' ? 'Package' : 'Element'}]`;
+            } else if (context === 'custom-column' && rowType.value) {
+                if (rowType.value !== '[CUSTOM TYPE]') {
+                    promptText += `\n[Row Type: ${rowType.value}]`;
+                } else {
+                    promptText += `\n[Row Type: Custom Type]`;
+                }
+            } else if (context === 'derived-property' && elementType.value) {
+                if (elementType.value !== '[CUSTOM TYPE]') {
+                    promptText += `\n[Element Type: ${elementType.value}]`;
+                } else {
+                    promptText += `\n[Element Type: Custom Type]`;
+                }
+            }
+        }
+        document.getElementById('userPromptContent').textContent = promptText;
         document.getElementById('userPromptSection').style.display = 'block';
     }
     

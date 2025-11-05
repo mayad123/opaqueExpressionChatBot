@@ -128,10 +128,4 @@ This tool is based on the official Cameo documentation:
 
 Found a bug or have a feature request? Feel free to contribute! This is an open-source project.
 
-## License
 
-MIT License - Feel free to use this tool for your Cameo modeling work!
-
----
-
-**Powered by Mistral.AI** | **Built for the Cameo modeling community**
