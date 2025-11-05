@@ -1,5 +1,9 @@
 // Netlify serverless function to handle Mistral.AI API calls
 exports.handler = async (event, context) => {
+    // Debug logging
+    console.log('Function called with method:', event.httpMethod);
+    console.log('Event path:', event.path);
+    
     // Handle CORS preflight
     if (event.httpMethod === 'OPTIONS') {
         return {
@@ -15,6 +19,7 @@ exports.handler = async (event, context) => {
 
     // Only allow POST requests
     if (event.httpMethod !== 'POST') {
+        console.log('Method not allowed:', event.httpMethod);
         return {
             statusCode: 405,
             headers: {
@@ -22,7 +27,9 @@ exports.handler = async (event, context) => {
                 'Access-Control-Allow-Headers': 'Content-Type',
                 'Access-Control-Allow-Methods': 'POST, OPTIONS',
             },
-            body: JSON.stringify({ error: 'Method not allowed' }),
+            body: JSON.stringify({ 
+                error: `Method not allowed. Expected POST, got ${event.httpMethod}` 
+            }),
         };
     }
 

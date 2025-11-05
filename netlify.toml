@@ -4,9 +4,17 @@
 [functions]
   directory = "netlify/functions"
 
+# Redirect all requests to index.html except for Netlify functions
 [[redirects]]
   from = "/*"
   to = "/index.html"
+  status = 200
+  force = false
+
+# Ensure functions are not redirected
+[[redirects]]
+  from = "/.netlify/functions/*"
+  to = "/.netlify/functions/:splat"
   status = 200
 
 [build.environment]

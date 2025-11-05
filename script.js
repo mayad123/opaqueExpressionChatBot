@@ -47,8 +47,20 @@ async function handleSubmit() {
         });
 
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ error: 'Unknown error occurred' }));
-            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            let errorMessage = `HTTP error! status: ${response.status}`;
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorMessage;
+            } catch (e) {
+                // If response isn't JSON, try to get text
+                try {
+                    const errorText = await response.text();
+                    if (errorText) errorMessage = errorText;
+                } catch (e2) {
+                    // Keep default error message
+                }
+            }
+            throw new Error(errorMessage);
         }
 
         const data = await response.json();
