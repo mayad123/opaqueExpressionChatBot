@@ -153,6 +153,8 @@ If the expression is about satisfy → requirement, the final JSON should look l
 
         const userPrompt = `Create an opaque expression template for Cameo that: ${prompt.trim()}`;
 
+        // COMMENTED OUT: Mistral.AI API call
+        /*
         // Call Mistral.AI API
         const mistralResponse = await fetch('https://api.mistral.ai/v1/chat/completions', {
             method: 'POST',
@@ -212,6 +214,33 @@ If the expression is about satisfy → requirement, the final JSON should look l
                 structured: parsed.structured,
                 expressionView: parsed.expressionView,
                 model: mistralData.model,
+            }),
+        };
+        */
+
+        // Return mock response with prompt analysis but empty generated content
+        const emptySections = {
+            intent: '',
+            startingContext: '',
+            metachain: '',
+            filters: '',
+            finalExpressionTemplate: '',
+            notes: '',
+            expressionView: null
+        };
+
+        return {
+            statusCode: 200,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+                rawResponse: '',
+                structured: emptySections,
+                expressionView: null,
+                model: 'mistral-medium',
+                promptAnalysis: promptAnalysis, // Include the prompt analysis
             }),
         };
 

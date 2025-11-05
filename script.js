@@ -68,6 +68,46 @@ function showResponse(data) {
         document.getElementById('userPromptSection').style.display = 'block';
     }
     
+    // Display prompt analysis if available
+    if (data.promptAnalysis) {
+        const analysis = data.promptAnalysis;
+        let analysisText = '';
+        
+        if (analysis.patterns && analysis.patterns.length > 0) {
+            analysisText = `Detected Patterns: ${analysis.patterns.join(', ')}\n\n`;
+        }
+        
+        if (analysis.guidance) {
+            analysisText += analysis.guidance;
+        }
+        
+        if (analysis.detectedRelations && analysis.detectedRelations.length > 0) {
+            analysisText += `\n\nDetected SysML Relationships:\n`;
+            analysis.detectedRelations.forEach(rel => {
+                analysisText += `- ${rel.keyword} → ${rel.metachain} (${rel.description})\n`;
+            });
+        }
+        
+        if (analysisText) {
+            // Create or update prompt analysis section
+            let analysisSection = document.getElementById('promptAnalysisSection');
+            if (!analysisSection) {
+                const structuredContent = document.getElementById('structuredContent');
+                analysisSection = document.createElement('div');
+                analysisSection.id = 'promptAnalysisSection';
+                analysisSection.className = 'section-block';
+                analysisSection.style.display = 'none';
+                analysisSection.innerHTML = `
+                    <h3>🔍 Prompt Analysis</h3>
+                    <pre id="promptAnalysisContent" class="code-block"></pre>
+                `;
+                structuredContent.insertBefore(analysisSection, structuredContent.firstChild);
+            }
+            document.getElementById('promptAnalysisContent').textContent = analysisText.trim();
+            analysisSection.style.display = 'block';
+        }
+    }
+    
     // Display structured sections
     if (data.structured) {
         const sections = data.structured;
@@ -185,6 +225,8 @@ function hideResponse() {
     // Hide all sections
     document.getElementById('userPromptSection').style.display = 'none';
     document.querySelectorAll('.section-block').forEach(el => el.style.display = 'none');
+    const analysisSection = document.getElementById('promptAnalysisSection');
+    if (analysisSection) analysisSection.style.display = 'none';
     document.getElementById('expressionViewSection').style.display = 'none';
     document.getElementById('rawResponseSection').style.display = 'none';
 }
