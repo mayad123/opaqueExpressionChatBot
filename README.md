@@ -1,8 +1,8 @@
-# 🎨 Cameo Opaque Expression Generator
+# Cameo Opaque Expression Generator
 
 A free web tool that helps you create **opaque expressions** for Cameo Systems Modeler (MagicDraw) by simply describing what you want to achieve in plain English.
 
-**🌐 Try it live: [https://opaueexpressionchatbot.netlify.app/](https://opaueexpressionchatbot.netlify.app/)**
+**Try it live: [https://opaueexpressionchatbot.netlify.app/](https://mayad123.github.io/opaqueExpressionChatBot/)**
 
 ## What is This Tool?
 
@@ -18,25 +18,25 @@ Opaque expressions in Cameo are powerful ways to:
 
 These expressions can be written in languages like OCL, Groovy, JavaScript, and more.
 
-## ✨ Features
+## Features
 
-- 🎯 **Natural Language Input** - Describe what you want in plain English
-- 📋 **Structured Output** - Get organized instructions with:
+- **Natural Language Input** - Describe what you want in plain English
+-  **Structured Output** - Get organized instructions with:
   - **Intent** - What the expression does
   - **Starting Context** - Where `self` refers to
   - **Metachain** - The navigation path through your model
   - **Filters** - How to filter elements
   - **Final Expression Template** - Ready-to-use template with placeholders
   - **Notes** - Additional guidance
-- 🌳 **Visual Expression Tree** - See the hierarchical structure of your expression
-- 📋 **Copy to Clipboard** - Easily copy any section
-- 🎨 **Beautiful Dark Theme** - Easy on the eyes
-- 📱 **Responsive Design** - Works on desktop, tablet, and mobile
+-  **Visual Expression Tree** - See the hierarchical structure of your expression
+- **Copy to Clipboard** - Easily copy any section
+-  **Beautiful Dark Theme** - Easy on the eyes
+- **Responsive Design** - Works on desktop, tablet, and mobile
 
-## 🚀 How to Use
+## How to Use
 
 ### Step 1: Visit the Website
-Go to **[https://opaueexpressionchatbot.netlify.app/](https://opaueexpressionchatbot.netlify.app/)**
+Go to **[https://opaueexpressionchatbot.netlify.app/](https://mayad123.github.io/opaqueExpressionChatBot/)**
 
 ### Step 2: Enter Your Query
 In the text area, describe what you want to achieve in Cameo. For example:
@@ -52,24 +52,24 @@ Click the **"Generate Expression"** button (or press `Ctrl+Enter`).
 ### Step 4: Review the Results
 The tool will provide you with:
 
-1. **🎯 Intent** - A plain-language description of what the expression does
+1. **Intent** - A plain-language description of what the expression does
 
-2. **📍 Starting Context** - What `self` refers to in your expression (e.g., an Action, Block, Pin, or Capability)
+2. **Starting Context** - What `self` refers to in your expression (e.g., an Action, Block, Pin, or Capability)
 
-3. **🔗 Metachain** - The navigation path through model elements you need to follow
+3. **Metachain** - The navigation path through model elements you need to follow
 
-4. **🔍 Filters** - Where and how to filter elements (e.g., stereotype checks, conditions)
+4. **Filters** - Where and how to filter elements (e.g., stereotype checks, conditions)
 
-5. **📝 Final Expression Template** - A template with placeholders like `[STEREOTYPE NAME]` that you can fill in with your actual model values
+5. **Final Expression Template** - A template with placeholders like `[STEREOTYPE NAME]` that you can fill in with your actual model values
 
-6. **💡 Notes** - Additional guidance and validation constraints
+6. **Notes** - Additional guidance and validation constraints
 
-7. **🌳 Expression View** - A visual tree structure showing how the expression is organized
+7. **Expression View** - A visual tree structure showing how the expression is organized
 
 ### Step 5: Use in Cameo
 Copy the relevant sections and use them to build your expression in Cameo's Expression Editor. Replace the placeholders (like `[STEREOTYPE NAME]`) with your actual model element names.
 
-## 📚 Understanding the Output
+## Understanding the Output
 
 ### Intent
 This explains in plain language what your expression will do. Use this to verify the tool understood your request correctly.
@@ -102,36 +102,36 @@ Replace `[STEREOTYPE NAME]` with your actual stereotype name like `InterfaceBloc
 ### Expression View
 This shows the hierarchical structure of your expression, similar to how Cameo's Expression Editor displays it. It helps you understand how the operations are nested.
 
-## 💡 Tips for Best Results
+## Tips for Best Results
 
 1. **Be Specific** - Describe exactly what you want to find or filter
-   - ✅ Good: "Find all classes that have the «InterfaceBlock» stereotype"
-   - ❌ Less clear: "Find some classes"
+   - Good: "Find all classes that have the «InterfaceBlock» stereotype"
+   - Less clear: "Find some classes"
 
 2. **Mention Stereotypes** - If you're looking for elements with specific stereotypes, mention them
-   - ✅ Good: "Get all elements with the «Capability» stereotype"
-   - ❌ Less clear: "Get some elements"
+   - Good: "Get all elements with the «Capability» stereotype"
+   - Less clear: "Get some elements"
 
 3. **Describe the Context** - If your expression starts from a specific element type, mention it
-   - ✅ Good: "From an Action, get all input pins that have types"
-   - ❌ Less clear: "Get pins"
+   - Good: "From an Action, get all input pins that have types"
+   - Less clear: "Get pins"
 
 4. **Use Model Terms** - Use Cameo/MagicDraw terminology when possible
    - Classes, Blocks, Actions, Pins, Properties, Operations, Stereotypes, etc.
 
-## 🔗 Related Documentation
+## Related Documentation
 
 This tool is based on the official Cameo documentation:
 - [Cameo Documentation - Creating new operations](https://docs.nomagic.com/spaces/MD2021x/pages/64978604/Creating+new+operations)
 
-## 🤝 Contributing
+## Contributing
 
 Found a bug or have a feature request? Feel free to contribute! This is an open-source project.
 
-## 📄 License
+## License
 
 MIT License - Feel free to use this tool for your Cameo modeling work!
 
 ---
 
-**Powered by Mistral.AI** 🤖 | **Built with ❤️ for the Cameo modeling community**
+**Powered by Mistral.AI** | **Built for the Cameo modeling community**

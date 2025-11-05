@@ -63,6 +63,58 @@ main {
     border: 1px solid var(--border-color);
 }
 
+.api-key-section {
+    margin-bottom: 30px;
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.api-key-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.api-key-wrapper label {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.api-key-input {
+    width: 100%;
+    padding: 12px;
+    background: var(--background);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.3s ease;
+}
+
+.api-key-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.api-key-help {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.api-key-help a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.api-key-help a:hover {
+    text-decoration: underline;
+}
+
 .input-section {
     margin-bottom: 30px;
 }

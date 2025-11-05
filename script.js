@@ -1,12 +1,31 @@
 // Configuration
-const API_ENDPOINT = '/.netlify/functions/generate-expression';
+const MISTRAL_API_URL = 'https://api.mistral.ai/v1/chat/completions';
 
 // DOM elements
 const promptInput = document.getElementById('promptInput');
+const apiKeyInput = document.getElementById('apiKeyInput');
 const submitBtn = document.getElementById('submitBtn');
 const responseSection = document.getElementById('responseSection');
 const errorSection = document.getElementById('errorSection');
 const errorMessage = document.getElementById('errorMessage');
+
+// Load API key from localStorage on page load
+window.addEventListener('DOMContentLoaded', () => {
+    const savedApiKey = localStorage.getItem('mistralApiKey');
+    if (savedApiKey) {
+        apiKeyInput.value = savedApiKey;
+    }
+});
+
+// Save API key to localStorage when changed
+apiKeyInput.addEventListener('blur', () => {
+    const apiKey = apiKeyInput.value.trim();
+    if (apiKey) {
+        localStorage.setItem('mistralApiKey', apiKey);
+    } else {
+        localStorage.removeItem('mistralApiKey');
+    }
+});
 
 // Submit handler
 submitBtn.addEventListener('click', handleSubmit);
@@ -21,6 +40,7 @@ let currentPrompt = '';
 
 async function handleSubmit() {
     const prompt = promptInput.value.trim();
+    const apiKey = apiKeyInput.value.trim();
     
     if (!prompt) {
         showError('Please enter a prompt');
@@ -38,28 +58,66 @@ async function handleSubmit() {
     setLoading(true);
     
     try {
-        console.log('Making request to:', API_ENDPOINT);
-        console.log('Request method: POST');
-        console.log('Request body:', { prompt });
+        // Analyze prompt to detect patterns
+        const promptAnalysis = analyzePrompt(prompt);
         
-        const response = await fetch(API_ENDPOINT, {
+        // If no API key, just show prompt analysis
+        if (!apiKey) {
+            const emptySections = {
+                intent: '',
+                startingContext: '',
+                metachain: '',
+                filters: '',
+                finalExpressionTemplate: '',
+                notes: '',
+                expressionView: null
+            };
+            
+            showResponse({
+                rawResponse: '',
+                structured: emptySections,
+                expressionView: null,
+                model: 'mistral-medium',
+                promptAnalysis: promptAnalysis
+            });
+            setLoading(false);
+            return;
+        }
+
+        // Generate system prompt
+        const systemPrompt = generateSystemPrompt(promptAnalysis);
+        const userPrompt = `Create an opaque expression template for Cameo that: ${prompt.trim()}`;
+
+        // Call Mistral.AI API directly
+        const response = await fetch(MISTRAL_API_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
             },
-            body: JSON.stringify({ prompt }),
+            body: JSON.stringify({
+                model: 'mistral-medium',
+                messages: [
+                    {
+                        role: 'system',
+                        content: systemPrompt,
+                    },
+                    {
+                        role: 'user',
+                        content: userPrompt,
+                    },
+                ],
+                temperature: 0.7,
+                max_tokens: 2000,
+            }),
         });
-        
-        console.log('Response status:', response.status);
-        console.log('Response statusText:', response.statusText);
 
         if (!response.ok) {
             let errorMessage = `HTTP error! status: ${response.status}`;
             try {
                 const errorData = await response.json();
-                errorMessage = errorData.error || errorMessage;
+                errorMessage = errorData.error?.message || errorData.error || errorMessage;
             } catch (e) {
-                // If response isn't JSON, try to get text
                 try {
                     const errorText = await response.text();
                     if (errorText) errorMessage = errorText;
@@ -70,14 +128,236 @@ async function handleSubmit() {
             throw new Error(errorMessage);
         }
 
-        const data = await response.json();
-        showResponse(data);
+        const mistralData = await response.json();
+        
+        // Extract the response content
+        const rawResponse = mistralData.choices?.[0]?.message?.content || 
+                          'No response generated. Please try again.';
+
+        // Parse the response to extract structured sections and expressionView
+        const parsed = parseStructuredResponse(rawResponse);
+
+        showResponse({
+            rawResponse: rawResponse,
+            structured: parsed.structured,
+            expressionView: parsed.expressionView,
+            model: mistralData.model,
+            promptAnalysis: promptAnalysis
+        });
+
     } catch (error) {
         console.error('Error:', error);
         showError(error.message || 'Failed to generate expression. Please try again.');
     } finally {
         setLoading(false);
     }
+}
+
+function generateSystemPrompt(promptAnalysis) {
+    let systemPrompt = `Your task is to:
+
+Explain the intent of the expression.
+
+Describe the starting context.
+
+Give a final expression template with placeholders.
+
+And most importantly: output an expressionView JSON object in a fixed schema so a UI can render it like the Cameo Structured Expression dialog.
+
+Follow these rules exactly.
+
+Output sections in this order:
+
+Intent
+
+Starting Context
+
+Final Expression Template
+
+expressionView (JSON)
+
+In the Final Expression Template, use placeholders in square brackets (e.g. [STEREOTYPE NAME], [METACHAIN HERE], [TARGET ELEMENT]). Do not invent real model element names.
+
+For the JSON, you MUST use this structure and naming:
+
+Top-level key: "expressionView"
+
+It must be an object
+
+It must have: label, type, icon, children
+
+The top node is the operation (e.g. "label": "select")
+
+The top node's children must be in this order:
+
+A node
+
+An input "arg1"
+
+The Filter node must look like this:
+
+{
+  "label": "Filter",
+  "type": "Filter",
+  "icon": "Filter",
+  "value": "arg1",
+  "children": []
+}
+  
+If the expression is about satisfy → requirement, the final JSON should look like this shape:
+
+{
+  "expressionView": {
+    "label": "select",
+    "type": "operation",
+    "icon": "expression.operation",
+    "children": [
+      {
+        "label": "Filter",
+        "type": "Filter",
+        "icon": "Filter",
+        "value": "arg1",
+        "children": []
+      },
+      {
+        "label": "arg1",
+        "type": "metachain",
+        "icon": "metachain",
+        "value": "r |",
+        "children": [
+          {
+            "label": "System block to dependencies",
+            "type": "metachain",
+            "icon": "metachain",
+            "value": "self.satisfy",
+            "children": []
+          }
+        ]
+      }
+    ]
+  }
+}`;
+
+    // Enhance system prompt with detected patterns
+    if (promptAnalysis.guidance) {
+        systemPrompt += `\n\n## IMPORTANT DETECTED PATTERNS:\n${promptAnalysis.guidance}\n`;
+    }
+
+    return systemPrompt;
+}
+
+// Helper function to analyze prompt and map to Cameo operations
+function analyzePrompt(prompt) {
+    const lowerPrompt = prompt.toLowerCase();
+    const detectedPatterns = [];
+    const guidance = [];
+
+    // Detect nested/recursive patterns → ImpliedRelation
+    const nestedKeywords = ['nested', 'recursive', 'recursively', 'nested within', 'contained in', 'hierarchical', 'parent', 'child'];
+    if (nestedKeywords.some(keyword => lowerPrompt.includes(keyword))) {
+        detectedPatterns.push('impliedRelation');
+        guidance.push(`- DETECTED: Nested/recursive logic detected. Use ImpliedRelation icon/operation for navigating through implied relationships.
+  - Icon: "ImpliedRelation" or "impliedRelation"
+  - Type: "impliedRelation" or "operation"
+  - This is for navigating through implicit model relationships (e.g., containment, ownership)`);
+    }
+
+    // Detect SysML relationship patterns → metachains
+    const sysmlRelationships = [
+        { keyword: 'satisfy', metachain: 'self.satisfy', description: 'satisfy relationship (Block to Requirements)' },
+        { keyword: 'satisfies', metachain: 'self.satisfy', description: 'satisfy relationship' },
+        { keyword: 'derive', metachain: 'self.derive', description: 'derive relationship' },
+        { keyword: 'derives', metachain: 'self.derive', description: 'derive relationship' },
+        { keyword: 'allocate', metachain: 'self.allocate', description: 'allocate relationship' },
+        { keyword: 'allocates', metachain: 'self.allocate', description: 'allocate relationship' },
+        { keyword: 'trace', metachain: 'self.trace', description: 'trace relationship' },
+        { keyword: 'traces', metachain: 'self.trace', description: 'trace relationship' },
+        { keyword: 'verify', metachain: 'self.verify', description: 'verify relationship' },
+        { keyword: 'verifies', metachain: 'self.verify', description: 'verify relationship' },
+        { keyword: 'refine', metachain: 'self.refine', description: 'refine relationship' },
+        { keyword: 'refines', metachain: 'self.refine', description: 'refine relationship' },
+        { keyword: 'clientdependency', metachain: 'self.clientDependency', description: 'client dependency relationship' },
+        { keyword: 'dependency', metachain: 'self.clientDependency', description: 'dependency relationship' },
+        { keyword: 'owned element', metachain: 'self.ownedElement', description: 'owned elements' },
+        { keyword: 'owned elements', metachain: 'self.ownedElement', description: 'owned elements' },
+        { keyword: 'type', metachain: 'self.type', description: 'type relationship' },
+        { keyword: 'input', metachain: 'self.input', description: 'input pins' },
+        { keyword: 'output', metachain: 'self.output', description: 'output pins' },
+    ];
+
+    const foundSysmlRelations = sysmlRelationships.filter(rel => lowerPrompt.includes(rel.keyword));
+    if (foundSysmlRelations.length > 0) {
+        detectedPatterns.push('metachain');
+        const metachainExamples = foundSysmlRelations.map(rel => 
+            `  - "${rel.keyword}" → metachain: "${rel.metachain}" (${rel.description})`
+        ).join('\n');
+        guidance.push(`- DETECTED: SysML relationship patterns found. Use metachain navigation for these relationships:
+${metachainExamples}
+  - Icon: "metachain"
+  - Type: "metachain"
+  - Use metachain navigation for explicit SysML/UML relationships`);
+    }
+
+    // Detect stereotype patterns → filter operations
+    const stereotypeKeywords = ['stereotype', 'stereotyped', '«', 'guillemet', 'applied stereotype'];
+    if (stereotypeKeywords.some(keyword => lowerPrompt.includes(keyword))) {
+        detectedPatterns.push('stereotypeFilter');
+        guidance.push(`- DETECTED: Stereotype filtering needed. Use filter operation with stereotype check:
+  - Filter condition: appliedStereotype->exists(s | s.name = '[STEREOTYPE NAME]')
+  - Icon: "Filter"
+  - Type: "Filter"
+  - Use this to filter elements by their applied stereotypes`);
+    }
+
+    // Detect property/attribute queries → filter operations
+    const propertyKeywords = ['property', 'attribute', 'has property', 'has attribute', 'named', 'name is', 'name equals'];
+    if (propertyKeywords.some(keyword => lowerPrompt.includes(keyword))) {
+        detectedPatterns.push('propertyFilter');
+        guidance.push(`- DETECTED: Property/attribute filtering needed. Use filter operation with property check:
+  - Filter condition: ->select(e | e.name = '[PROPERTY NAME]') or ->select(e | e.[PROPERTY_NAME] = '[VALUE]')
+  - Icon: "Filter"
+  - Type: "Filter"
+  - Use this to filter elements by their properties or attributes`);
+    }
+
+    // Detect collection operations
+    if (lowerPrompt.includes('all ') || lowerPrompt.includes('every ') || lowerPrompt.includes('collection')) {
+        detectedPatterns.push('collection');
+        guidance.push(`- DETECTED: Collection operation needed. Use collect, select, or exists operations:
+  - collect: Transform each element in a collection
+  - select: Filter elements from a collection
+  - exists: Check if any element in collection matches condition`);
+    }
+
+    // Detect type checking
+    const typeKeywords = ['type', 'instance of', 'is a', 'kind of', 'classifier'];
+    if (typeKeywords.some(keyword => lowerPrompt.includes(keyword) && !lowerPrompt.includes('type relationship'))) {
+        detectedPatterns.push('typeTest');
+        guidance.push(`- DETECTED: Type checking needed. Use type test operation:
+  - Icon: "TypeTest" or "typeTest"
+  - Type: "typeTest" or "operation"
+  - Use this to check if an element is an instance of a specific type or classifier`);
+    }
+
+    // Detect filter/condition patterns
+    if (lowerPrompt.includes('filter') || lowerPrompt.includes('where') || lowerPrompt.includes('that') || lowerPrompt.includes('which')) {
+        detectedPatterns.push('filter');
+        guidance.push(`- DETECTED: Filtering/conditioning needed. Use filter operation:
+  - Icon: "Filter"
+  - Type: "Filter"
+  - Use this to narrow down collections based on conditions`);
+    }
+
+    // Combine all guidance
+    const fullGuidance = guidance.length > 0 
+        ? `Based on the user's prompt, the following Cameo operations should be used:\n\n${guidance.join('\n\n')}\n\nIMPORTANT: When generating the expressionView JSON, use the icons and types specified above based on the detected patterns.`
+        : '';
+
+    return {
+        patterns: detectedPatterns,
+        guidance: fullGuidance,
+        detectedRelations: foundSysmlRelations
+    };
 }
 
 function showResponse(data) {
@@ -190,6 +470,78 @@ function showResponse(data) {
     responseSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+function parseStructuredResponse(text) {
+    const sections = {
+        intent: '',
+        startingContext: '',
+        metachain: '',
+        filters: '',
+        finalExpressionTemplate: '',
+        notes: '',
+        expressionView: null
+    };
+
+    // Extract text sections
+    const intentMatch = text.match(/Intent\s*\n(.*?)(?=\n\s*(?:Starting Context|Metachain|Filters|Final Expression Template|Notes|ExpressionView))/is);
+    if (intentMatch) sections.intent = intentMatch[1].trim();
+
+    const startingContextMatch = text.match(/Starting Context\s*\n(.*?)(?=\n\s*(?:Metachain|Filters|Final Expression Template|Notes|ExpressionView))/is);
+    if (startingContextMatch) sections.startingContext = startingContextMatch[1].trim();
+
+    const metachainMatch = text.match(/Metachain\s*\n(.*?)(?=\n\s*(?:Filters|Final Expression Template|Notes|ExpressionView))/is);
+    if (metachainMatch) sections.metachain = metachainMatch[1].trim();
+
+    const filtersMatch = text.match(/Filters\s*\n(.*?)(?=\n\s*(?:Final Expression Template|Notes|ExpressionView))/is);
+    if (filtersMatch) sections.filters = filtersMatch[1].trim();
+
+    const finalExpressionMatch = text.match(/Final Expression Template\s*\n(.*?)(?=\n\s*(?:Notes|ExpressionView))/is);
+    if (finalExpressionMatch) sections.finalExpressionTemplate = finalExpressionMatch[1].trim();
+
+    const notesMatch = text.match(/Notes\s*\n(.*?)(?=\n\s*ExpressionView)/is);
+    if (notesMatch) sections.notes = notesMatch[1].trim();
+
+    // Extract JSON expressionView - look for the JSON block after "ExpressionView (JSON)"
+    const expressionViewMatch = text.match(/ExpressionView\s*\(JSON\)\s*\n([\s\S]*?)(?=\n\n|\n\s*$|$)/);
+    if (expressionViewMatch) {
+        try {
+            const jsonStr = expressionViewMatch[1].trim();
+            // Try to parse the JSON - it might be wrapped in { "expressionView": ... }
+            const parsed = JSON.parse(jsonStr);
+            if (parsed.expressionView) {
+                sections.expressionView = parsed;
+            } else {
+                // If it's just the expressionView object, wrap it
+                sections.expressionView = { expressionView: parsed };
+            }
+        } catch (e) {
+            // Try alternative: look for any JSON block containing "expressionView"
+            try {
+                const jsonBlockMatch = text.match(/\{[\s\S]*"expressionView"[\s\S]*\}/);
+                if (jsonBlockMatch) {
+                    sections.expressionView = JSON.parse(jsonBlockMatch[0]);
+                }
+            } catch (e2) {
+                console.error('Failed to parse expressionView JSON:', e2);
+            }
+        }
+    } else {
+        // Fallback: look for any JSON block containing "expressionView"
+        const jsonBlockMatch = text.match(/\{[\s\S]*"expressionView"[\s\S]*\}/);
+        if (jsonBlockMatch) {
+            try {
+                sections.expressionView = JSON.parse(jsonBlockMatch[0]);
+            } catch (e) {
+                console.error('Failed to parse expressionView JSON (fallback):', e);
+            }
+        }
+    }
+
+    return {
+        structured: sections,
+        expressionView: sections.expressionView
+    };
+}
+
 function renderExpressionTree(node, container = null, level = 0) {
     if (!container) {
         container = document.getElementById('expressionViewTree');
@@ -273,5 +625,3 @@ function setLoading(loading) {
         btnLoader.style.display = 'none';
     }
 }
-
-
