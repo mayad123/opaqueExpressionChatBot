@@ -38,6 +38,10 @@ async function handleSubmit() {
     setLoading(true);
     
     try {
+        console.log('Making request to:', API_ENDPOINT);
+        console.log('Request method: POST');
+        console.log('Request body:', { prompt });
+        
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
             headers: {
@@ -45,6 +49,9 @@ async function handleSubmit() {
             },
             body: JSON.stringify({ prompt }),
         });
+        
+        console.log('Response status:', response.status);
+        console.log('Response statusText:', response.statusText);
 
         if (!response.ok) {
             let errorMessage = `HTTP error! status: ${response.status}`;
