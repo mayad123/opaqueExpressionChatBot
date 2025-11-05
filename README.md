@@ -1,138 +1,137 @@
-# Cameo Opaque Expression Generator
+# 🎨 Cameo Opaque Expression Generator
 
-A web application that helps users create opaque expressions in Cameo Systems Modeler (MagicDraw) by converting natural language prompts into step-by-step instructions. Powered by Mistral.AI.
+A free web tool that helps you create **opaque expressions** for Cameo Systems Modeler (MagicDraw) by simply describing what you want to achieve in plain English.
 
-## Features
+**🌐 Try it live: [https://opaueexpressionchatbot.netlify.app/](https://opaueexpressionchatbot.netlify.app/)**
 
-- 🎨 Beautiful, modern UI with dark theme
-- 💬 Natural language input for describing desired opaque expressions
-- 📚 Based on official Cameo documentation
-- 🔒 Secure API key handling via Netlify environment variables
-- 📱 Responsive design for all devices
-- 📋 One-click copy to clipboard
+## What is This Tool?
 
-## Setup and Deployment
+If you work with **Cameo Systems Modeler** (formerly MagicDraw) and need to create complex queries or expressions to navigate your model, this tool can help! Instead of manually figuring out how to write OCL expressions or configure Cameo's expression builder, you can describe what you want in natural language and get step-by-step instructions.
 
-### Prerequisites
+### What are Opaque Expressions?
 
-- A Mistral.AI API key ([Get one here](https://console.mistral.ai/))
-- A Netlify account (free tier works)
-- A GitHub account
+Opaque expressions in Cameo are powerful ways to:
+- Navigate through model elements (metachains)
+- Filter collections based on conditions
+- Find specific elements with stereotypes
+- Create complex queries across your model
 
-### Local Development
+These expressions can be written in languages like OCL, Groovy, JavaScript, and more.
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/mayad123/opaqueExpressionChatBot.git
-   cd opaqueExpressionChatBot
-   ```
+## ✨ Features
 
-2. **Install dependencies** (optional, for local Netlify dev)
-   ```bash
-   npm install
-   ```
+- 🎯 **Natural Language Input** - Describe what you want in plain English
+- 📋 **Structured Output** - Get organized instructions with:
+  - **Intent** - What the expression does
+  - **Starting Context** - Where `self` refers to
+  - **Metachain** - The navigation path through your model
+  - **Filters** - How to filter elements
+  - **Final Expression Template** - Ready-to-use template with placeholders
+  - **Notes** - Additional guidance
+- 🌳 **Visual Expression Tree** - See the hierarchical structure of your expression
+- 📋 **Copy to Clipboard** - Easily copy any section
+- 🎨 **Beautiful Dark Theme** - Easy on the eyes
+- 📱 **Responsive Design** - Works on desktop, tablet, and mobile
 
-3. **Set up environment variables**
-   - Create a `.env` file in the root directory:
-     ```
-     MISTRAL_API_KEY=your_mistral_api_key_here
-     ```
+## 🚀 How to Use
 
-4. **Run locally with Netlify CLI**
-   ```bash
-   npm run dev
-   # or
-   npx netlify dev
-   ```
-   
-   The site will be available at `http://localhost:8888`
+### Step 1: Visit the Website
+Go to **[https://opaueexpressionchatbot.netlify.app/](https://opaueexpressionchatbot.netlify.app/)**
 
-### Deployment to Netlify
+### Step 2: Enter Your Query
+In the text area, describe what you want to achieve in Cameo. For example:
 
-1. **Push to GitHub**
-   ```bash
-   git add .
-   git commit -m "Initial commit"
-   git push origin main
-   ```
+- *"Find all classes that have a property named status"*
+- *"Get all operations from classes that extend a specific base class"*
+- *"Return all interface blocks on the type of an input pin"*
+- *"Select all elements with the «InterfaceBlock» stereotype"*
 
-2. **Deploy to Netlify**
-   - Go to [Netlify](https://www.netlify.com/)
-   - Click "New site from Git"
-   - Connect your GitHub repository: `mayad123/opaqueExpressionChatBot`
-   - Configure build settings:
-     - Build command: Leave empty (or `echo 'No build needed'`)
-     - Publish directory: `.` (root)
-   - Add environment variable:
-     - Go to Site settings → Environment variables
-     - Add `MISTRAL_API_KEY` with your Mistral.AI API key
-   - Click "Deploy site"
+### Step 3: Generate Expression
+Click the **"Generate Expression"** button (or press `Ctrl+Enter`).
 
-3. **Configure GitHub Pages (Alternative)**
-   If you prefer GitHub Pages:
-   - Go to your repository settings
-   - Navigate to Pages
-   - Select source: `main` branch
-   - Note: GitHub Pages won't support Netlify Functions, so you'll need to deploy the serverless function separately or use a different approach
+### Step 4: Review the Results
+The tool will provide you with:
 
-### Using Netlify Functions
+1. **🎯 Intent** - A plain-language description of what the expression does
 
-The project uses Netlify Functions to securely handle API calls. The function is located at:
-- `netlify/functions/generate-expression.js`
+2. **📍 Starting Context** - What `self` refers to in your expression (e.g., an Action, Block, Pin, or Capability)
 
-This function:
-- Handles CORS properly
-- Securely stores the Mistral.AI API key
-- Processes natural language prompts
-- Returns formatted opaque expression instructions
+3. **🔗 Metachain** - The navigation path through model elements you need to follow
 
-## Configuration
+4. **🔍 Filters** - Where and how to filter elements (e.g., stereotype checks, conditions)
 
-### Changing the Mistral Model
+5. **📝 Final Expression Template** - A template with placeholders like `[STEREOTYPE NAME]` that you can fill in with your actual model values
 
-Edit `netlify/functions/generate-expression.js` and change the `model` parameter:
-```javascript
-model: 'mistral-medium', // Options: mistral-small, mistral-medium, mistral-large
+6. **💡 Notes** - Additional guidance and validation constraints
+
+7. **🌳 Expression View** - A visual tree structure showing how the expression is organized
+
+### Step 5: Use in Cameo
+Copy the relevant sections and use them to build your expression in Cameo's Expression Editor. Replace the placeholders (like `[STEREOTYPE NAME]`) with your actual model element names.
+
+## 📚 Understanding the Output
+
+### Intent
+This explains in plain language what your expression will do. Use this to verify the tool understood your request correctly.
+
+### Starting Context
+This tells you what `self` represents in your expression. For example:
+- *"self is the Action that owns the InputPin"*
+- *"self refers to the Block element"*
+
+### Metachain
+A metachain is the navigation path through your model. It shows how to traverse from one element to another. For example:
+- `self.input.type.ownedElement` - Navigate from self to input, to its type, to owned elements
+
+### Filters
+Filters show you how to narrow down collections. Common patterns include:
+- Checking stereotypes: `appliedStereotype->exists(s | s.name = '[STEREOTYPE NAME]')`
+- Property conditions: `->select(e | e.name = '[PROPERTY NAME]')`
+
+### Final Expression Template
+This is the actual expression code you'll use in Cameo. It uses placeholders (in brackets) that you replace with your model-specific values. For example:
+```ocl
+self.input->collect(p |
+  p.type.ownedElement
+     ->select(e | e.appliedStereotype->exists(s | s.name = '[STEREOTYPE NAME]'))
+)
 ```
 
-### Customizing the System Prompt
+Replace `[STEREOTYPE NAME]` with your actual stereotype name like `InterfaceBlock`.
 
-Modify the `systemPrompt` variable in `netlify/functions/generate-expression.js` to change how the AI responds.
+### Expression View
+This shows the hierarchical structure of your expression, similar to how Cameo's Expression Editor displays it. It helps you understand how the operations are nested.
 
-## Project Structure
+## 💡 Tips for Best Results
 
-```
-opaqueExpressionChatBot/
-├── index.html              # Main HTML file
-├── styles.css              # Styling
-├── script.js               # Frontend JavaScript
-├── netlify/
-│   └── functions/
-│       └── generate-expression.js  # Netlify serverless function
-├── netlify.toml            # Netlify configuration
-├── package.json            # Node.js dependencies
-└── README.md              # This file
-```
+1. **Be Specific** - Describe exactly what you want to find or filter
+   - ✅ Good: "Find all classes that have the «InterfaceBlock» stereotype"
+   - ❌ Less clear: "Find some classes"
 
-## How It Works
+2. **Mention Stereotypes** - If you're looking for elements with specific stereotypes, mention them
+   - ✅ Good: "Get all elements with the «Capability» stereotype"
+   - ❌ Less clear: "Get some elements"
 
-1. User enters a natural language prompt describing what they want to achieve in Cameo
-2. Frontend sends the prompt to the Netlify serverless function
-3. Serverless function calls Mistral.AI API with:
-   - System prompt containing Cameo documentation context
-   - User's natural language prompt
-4. Mistral.AI generates step-by-step instructions
-5. Response is formatted and displayed to the user
+3. **Describe the Context** - If your expression starts from a specific element type, mention it
+   - ✅ Good: "From an Action, get all input pins that have types"
+   - ❌ Less clear: "Get pins"
 
-## Documentation Reference
+4. **Use Model Terms** - Use Cameo/MagicDraw terminology when possible
+   - Classes, Blocks, Actions, Pins, Properties, Operations, Stereotypes, etc.
 
-Based on: [Cameo Documentation - Creating new operations](https://docs.nomagic.com/spaces/MD2021x/pages/64978604/Creating+new+operations)
+## 🔗 Related Documentation
 
-## License
+This tool is based on the official Cameo documentation:
+- [Cameo Documentation - Creating new operations](https://docs.nomagic.com/spaces/MD2021x/pages/64978604/Creating+new+operations)
 
-MIT
+## 🤝 Contributing
 
-## Contributing
+Found a bug or have a feature request? Feel free to contribute! This is an open-source project.
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+## 📄 License
 
+MIT License - Feel free to use this tool for your Cameo modeling work!
+
+---
+
+**Powered by Mistral.AI** 🤖 | **Built with ❤️ for the Cameo modeling community**
