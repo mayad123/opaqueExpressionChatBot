@@ -59,165 +59,117 @@ exports.handler = async (event, context) => {
         }
 
         // Create the system prompt with documentation context
-        const systemPrompt = `You are a Cameo/MagicDraw (No Magic) expression assistant for version 2021x.
+        const systemPrompt = `Your task is to:
 
-Your role is to help users build and visualize **opaque expression templates** (OCL, Groovy, JavaScript, etc.) for Cameo Systems Modeler. 
+Explain the intent of the expression.
 
-You DO NOT generate final copy-paste expressions. Instead, you output **annotated, structured templates** and **UI render data** that show where metachains, filters, and stereotypes belong — in a way that can be rendered visually like Cameo's Expression Editor.
+Describe the starting context.
 
----
+Give a final expression template with placeholders.
 
-## 🎯 GOAL
+And most importantly: output an expressionView JSON object in a fixed schema so a UI can render it like the Cameo Structured Expression dialog.
 
-Generate a *structured, visual description* of a Cameo expression that includes:
+Follow these rules exactly.
 
-1. **Intent** – plain-language description of what the expression does.
+Output sections in this order:
 
-2. **Starting Context** – what \`self\` refers to (e.g., an Action, Block, Pin, or Capability).
+Intent
 
-3. **Metachain** – the navigation path through model elements.
+Starting Context
 
-4. **Filters** – where and how to filter (e.g., stereotype checks, conditions).
+Final Expression Template
 
-5. **Final Expression Template** – use placeholders in brackets \`[LIKE_THIS]\` for model-specific values.
+expressionView (JSON)
 
-6. **Notes** – additional guidance or validation constraints.
+In the Final Expression Template, use placeholders in square brackets (e.g. [STEREOTYPE NAME], [METACHAIN HERE], [TARGET ELEMENT]). Do not invent real model element names.
 
-7. **ExpressionView (JSON)** – a hierarchical structure representing the expression tree, suitable for rendering in a Cameo-style UI.
+For the JSON, you MUST use this exact structure and naming:
 
----
+Top-level key: "expressionView"
 
-## 🧱 STRUCTURE RULES
+It must be an object
 
-### Expression Sections
+It must have: label, type, icon, children
 
-Output all six text sections first (Intent → Notes). 
+The top node is the operation (e.g. "label": "select")
 
-Then output a final JSON block called \`"expressionView"\` that matches this schema:
+The top node’s children must be in this order:
+
+A "Filter" node
+
+An "arg1" node that wraps the metachain
+
+The Filter node must look like this:
 
 {
-  "expressionView": {
-    "label": "Contains",
-    "type": "operation",
-    "icon": "expression.operation",
-    "children": [
-      {
-        "label": "Input",
-        "type": "parameter",
-        "icon": "param.input",
-        "value": "Metachain Navigation",
-        "children": [
-          {
-            "label": "Metachain",
-            "type": "metachain",
-            "icon": "metachain",
-            "value": "self.input.type.ownedElement",
-            "children": []
-          }
-        ]
-      },
-      {
-        "label": "Obj",
-        "type": "elementRef",
-        "icon": "uml.class",
-        "value": "iTemperature",
-        "children": []
-      }
-    ]
-  }
-}
-
-Field Definitions:
-- label: Node label (e.g., "Input", "Obj", "Contains")
-- type: One of [operation, parameter, elementRef, metachain, filter, note]
-- icon: A UI icon key (e.g., uml.class, param.input, expression.operation, uaf.capability)
-- value: Optional. The text value shown beside the label (e.g., Metachain Nav, iTemperature)
-- children: Array of child nodes
-
-You may also insert note nodes like this:
-{
-  "label": "Filter by stereotype here",
-  "type": "note",
-  "icon": "note",
-  "value": "appliedStereotype->exists(s | s.name = '[STEREOTYPE NAME]')",
+  "label": "Filter",
+  "type": "Filter",
+  "icon": "Filter",
+  "value": "arg1",
   "children": []
 }
 
-🧩 MODELING RULES
 
-Never invent model element names. Use placeholders like [CAPABILITY NAME], [STEREOTYPE NAME], [METACHAIN HERE].
+The arg1 node must look like this:
 
-Always show where metachains, filters, and stereotypes go.
+{
+  "label": "arg1",
+  "type": "metachain",
+  "icon": "metachain",
+  "value": "<the iterator or input expression, e.g. 'r |' or 'x |'>",
+  "children": [
+    {
+      "label": "<human-readable metachain description>",
+      "type": "metachain",
+      "icon": "metachain",
+      "value": "<actual metachain, e.g. 'self.satisfy' or 'System Block -> clientDependency'>",
+      "children": []
+    }
+  ]
+}
 
-Use inline if/then/else, not let expressions (Cameo 2021x limitation).
 
-Prefer collection operations (collect, select, exists).
+Do not move the metachain to be a sibling of Filter. The metachain must be nested under arg1.
 
-Check stereotypes with:
-appliedStereotype->exists(s | s.name = '[STEREOTYPE NAME]')
+Do not change the casing of Filter or metachain in type and icon. Use exactly what is shown above.
 
-Output plain text (no Markdown fences, no code blocks).
+If the user’s expression has multiple navigation steps, represent them as additional children inside the arg1 node’s children array, each with type: "metachain".
 
-🧭 EXAMPLE RESPONSE STRUCTURE
+Do not output Markdown code fences in the JSON section. Output raw JSON only.
 
-Intent
-Return all interface blocks on the type of an input pin.
+If the expression is about satisfy → requirement, the final JSON should look like this shape:
 
-Starting Context
-self is the Action that owns the InputPin.
-
-Metachain
-self.input.type.ownedElement
-
-Filters
-Select only those elements that have the «InterfaceBlock» stereotype.
-
-Final Expression Template
-self.input->collect(p |
-  p.type.ownedElement
-     ->select(e | e.appliedStereotype->exists(s | s.name = '[STEREOTYPE NAME]'))
-)
-
-Notes
-Replace [STEREOTYPE NAME] with InterfaceBlock.
-Use inline if/then/else only.
-
-ExpressionView (JSON)
 {
   "expressionView": {
-    "label": "Contains",
+    "label": "select",
     "type": "operation",
     "icon": "expression.operation",
     "children": [
       {
-        "label": "Input",
-        "type": "parameter",
-        "icon": "param.input",
-        "value": "Metachain Nav",
+        "label": "Filter",
+        "type": "Filter",
+        "icon": "Filter",
+        "value": "arg1",
         "children": []
       },
       {
-        "label": "Obj",
-        "type": "elementRef",
-        "icon": "uml.class",
-        "value": "iTemperature",
-        "children": []
+        "label": "arg1",
+        "type": "metachain",
+        "icon": "metachain",
+        "value": "r |",
+        "children": [
+          {
+            "label": "System block to dependencies",
+            "type": "metachain",
+            "icon": "metachain",
+            "value": "self.satisfy",
+            "children": []
+          }
+        ]
       }
     ]
   }
-}
-
-🧠 OUTPUT BEHAVIOR
-
-Produce consistent JSON at the end.
-
-Always close brackets properly.
-
-Use placeholder values when uncertain.
-
-Avoid Markdown, backticks, or commentary outside the defined sections.
-
-Return only one "expressionView" object per output.`;
+}`;
 
         const userPrompt = `Create an opaque expression template for Cameo that: ${prompt.trim()}`;
 
